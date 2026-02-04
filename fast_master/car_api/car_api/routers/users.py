@@ -1,5 +1,6 @@
 from fastapi import APIRouter, status
 
+from car_api.db import USERS
 from car_api.schemas.users import (
     UserSchema,
     UserListPublicSchema,
@@ -15,7 +16,9 @@ router = APIRouter()
     response_model=UserPublicSchema,
 )
 async def create_user(user: UserSchema):
-    pass
+    user_with_id = UserPublicSchema(**user.model_dump(), id=len(USERS) + 1)
+    USERS.append(user_with_id)
+    return user_with_id
 
 
 @router.get(
