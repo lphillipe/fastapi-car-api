@@ -56,6 +56,13 @@ class Car(Base):
     description: Mapped[Optional[str]] = mapped_column(Text, default=None)
     is_available: Mapped[bool] = mapped_column(default=True)
 
+    brand_id: Mapped[int] = mapped_column(
+        ForeignKey('brands.id'),
+    )
+    owner_id: Mapped[int] = mapped_column(
+        ForeignKey('users.id'),
+    )
+
     created_at: Mapped[str] = mapped_column(server_default=func.now())
     update_at: Mapped[str] = mapped_column(
         onupdate=func.now(), server_default=func.now(),
