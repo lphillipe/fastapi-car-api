@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, exists
 
 from car_api.core.database import get_session
+from car_api.core.security import get_password_hash
 from car_api.db import USERS
 from car_api.models.users import User
 from car_api.schemas.users import (
@@ -45,7 +46,7 @@ async def create_user(
     db_user = User(
         username=user.username,
         email=user.email,
-        password=user.password,
+        password=get_password_hash(user.password),
     )
 
     db.add(db_user)
