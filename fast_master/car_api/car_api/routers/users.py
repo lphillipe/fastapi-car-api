@@ -60,9 +60,19 @@ async def create_user(
     path= '/', 
     status_code=status.HTTP_200_OK, 
     response_model=UserListPublicSchema,
+    summary='Listar usuários',
 )
-async def list_users():
-    return { 'users': USERS }
+async def list_users(
+    db: AsyncSession = Depends(get_session),
+):
+    query = select(User)
+
+    result = await db.execute(query)
+    users = result.scalars().all()
+    
+    return { 
+        'users': users 
+    }
 
 @router.get(
         path='/{user_id}',
