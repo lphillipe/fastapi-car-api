@@ -6,7 +6,6 @@ from sqlalchemy import select, exists
 
 from car_api.core.database import get_session
 from car_api.core.security import get_password_hash
-from car_api.db import USERS
 from car_api.models.users import User
 from car_api.schemas.users import (
     UserSchema,
