@@ -1,0 +1,34 @@
+from fastapi import APIRouter,status, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from car_api.core.database import get_session
+from car_api.models.cars import Brand
+from car_api.schemas.brands import (
+    BrandSchema,
+    BrandPublicSchema,
+)
+
+router = APIRouter()
+
+@router.post(
+    path='/',
+    status_code=status.HTTP_201_CREATED,
+    response_model=BrandPublicSchema,
+    summary='Criar nova marca',
+)
+
+async def create_brand(
+    brand: BrandSchema,
+    db: AsyncSession = Depends(get_session),
+):
+    db_brand = Brand(
+        name=brand.name,
+        description=brand.description,
+        is_active=brand.is_active,
+    )
+
+    db.add(db_brand)
+    await db.commit()
+    await db.refresh(db_brand)
+
+    return db_brand
