@@ -87,7 +87,7 @@ async def delete_car(
         car_id: int,
         db: AsyncSession = Depends(get_session),
 ):
-    car = await db.ge(Car, car_id)
+    car = await db.get(Car, car_id)
 
     if not car:
         raise HTTPException(
