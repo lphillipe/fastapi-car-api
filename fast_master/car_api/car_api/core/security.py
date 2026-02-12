@@ -4,9 +4,11 @@ from typing import Dict, Optional
 import jwt
 from fastapi import HTTPException, status
 from pwdlib import PasswordHash
-
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from car_api.core.settings import Settings
+from car_api.models.users import User
 
 pwd_context = PasswordHash.recommended()
 settings = Settings()
@@ -49,3 +51,17 @@ def verify_token(token: str) -> Dict:
             detail='Could not validate credentials',
             headers={'WWW-Authenticate': 'Bearer'},
         )
+    
+async def authenticate_user(
+    email: str, password: str, db: AsyncSession
+) -> Optional[User]:
+    result = await db.execute(select(User).where(User.eamil == email))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        return None
+    
+    if not verify_password(password, user.password):
+        return None
+    
+    return user
