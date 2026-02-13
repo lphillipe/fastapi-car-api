@@ -30,8 +30,19 @@ async def token(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Incorrect email or password',
-            headers=('WWW-Authenticate': 'Bearer'),
+            headers={'WWW-Authenticate': 'Bearer'},
         )
     access_token = create_access_token(data={'sub': str(user.id)})
+
+    return {'access_token': access_token, 'token_type': 'bearer'}
+
+@router.post(
+    '/refresh_token',
+    response_model=Token,
+    status_code=status.HTTP_200_OK,
+    summary='Atualizar token de acesso',
+)
+async def refresh_token(current_user: User = Depends(get_current_user)):
+    access_token = create_access_token(data={'sub': str(current_user.id)})
 
     return {'access_token': access_token, 'token_type': 'bearer'}

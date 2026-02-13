@@ -45,7 +45,7 @@ def verify_token(token: str) -> Dict:
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Token has expired'
+            detail='Token has expired',
             headers={'WWW-Authenticate': 'Bearer'},
         )
     except jwt.InvalidTokenError:
@@ -58,7 +58,7 @@ def verify_token(token: str) -> Dict:
 async def authenticate_user(
     email: str, password: str, db: AsyncSession
 ) -> Optional[User]:
-    result = await db.execute(select(User).where(User.eamil == email))
+    result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
     if not user:
