@@ -1,3 +1,18 @@
 site_name: Car API Documentation
 site_description: Uma API REST completa para gerenciamento de carros.
 site_author: L.Phillipe
+
+theme:
+  name: material
+  font:
+    text: Roboto
+
+plugins:
+  - search
+
+
+markdown_extensions:
+  - pymdownx.superfences:
+    custom_fences:
+      - name: mermaid
+        class: mermaid
