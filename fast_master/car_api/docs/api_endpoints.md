@@ -1,6 +1,6 @@
 # API Endpoints
 
-Esta seção documenta todos os endpoints da API de Gerenciamento de Carros, incluindo métodos HTTP, parâmetros, exemplos de requisição e resposta.
+Esta seçãoo documenta todos os endpoints da API de Gerenciamento de Carros, incluindo métodos HTTP, parâmetros, exemplos de requisição e resposta.
 
 ## Visão Geral
 
