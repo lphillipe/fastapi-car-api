@@ -5,7 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from car_api.app import app
 from car_api.core.database import get_session
+from car_api.core.security import get_password_hash
 from car_api.models import Base
+from car_api.models.users import User
 
 
 @pytest_asyncio.fixture
@@ -44,4 +46,13 @@ async def user_data():
 
 @pytest_asyncio.fixture
 async def user(session, user_data):
-    pass
+    hashed_password = get_password_hash(user_data['password'])
+    db_user = User(
+        username=user_data['username'],
+        email=user_data['email'],
+        password=hashed_password,
+    )
+    session.add(db_user)
+    await session.commit()
+    await session.refresh(db_user)
+    return db_user
