@@ -1,6 +1,5 @@
 import pytest
 import pytest_asyncio
-
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
@@ -11,9 +10,7 @@ from car_api.models import Base
 
 @pytest_asyncio.fixture
 async def session():
-    engine = create_async_engine(
-        url='sqlite+aiosqlite:///:memory:'
-    )
+    engine = create_async_engine(url='sqlite+aiosqlite:///:memory:')
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -34,4 +31,4 @@ def client(session):
         app.dependency_overrides[get_session] = get_session_override
         yield client
 
-    app.dependency_overrides.clear() 
+    app.dependency_overrides.clear()
