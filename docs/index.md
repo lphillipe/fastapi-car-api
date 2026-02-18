@@ -15,6 +15,7 @@ Esta API oferece um sistema completo para gerenciamento de carros, permitindo op
 - **Busca e Filtragem**: Recursos avançados de busca e filtragem para encontrar veículos rapidamente
 - **Validação de Dados**: Validações rigorosas para garantir a integridade dos dados
 - **Segurança**: Práticas de segurança implementadas para proteger os dados dos usuários
+- **Testes Automatizados**: Suite de testes com Pytest para garantir qualidade e estabilidade
 
 ### Tecnologias utilizadas
 

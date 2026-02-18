@@ -4,42 +4,43 @@ Este documento descreve a abordagem de testes para a API de Gerenciamento de Car
 
 ## Visão Geral
 
-Atualmente, o projeto não inclui testes automatizados implementados, mas esta seção fornece diretrizes para implementação futura de uma suite de testes abrangente.
+O projeto possui uma suite de testes automatizados implementada usando Pytest, cobrindo endpoints da API, operações de banco de dados e funcionalidades de segurança.
 
 ## Estratégia de Testes
 
 ### Tipos de Testes
 
-#### Testes Unitários
-- Testam funções individuais e métodos
-- Verificam lógica de negócios isolada
-- Devem testar validações, funções de utilidade e lógica de segurança
-
-#### Testes de Integração
-- Testam a interação entre diferentes componentes
-- Verificam endpoints da API com banco de dados real ou simulado
-- Garantem que os diferentes módulos trabalhem juntos corretamente
-
 #### Testes de API
 - Testam os endpoints da API diretamente
 - Verificam status HTTP, headers e payloads
 - Validam autenticação e autorização
+- Cobrem operações CRUD completas
+
+#### Testes Unitários
+- Testam funções individuais e métodos
+- Verificam lógica de negócios isolada
+- Testam validações de schemas Pydantic
+
+#### Testes de Integração
+- Testam a interação entre diferentes componentes
+- Verificam endpoints da API com banco de dados em memória
+- Garantem que os diferentes módulos trabalhem juntos corretamente
 
 ## Ferramentas de Teste
 
 ### Pytest
-O framework recomendado para testes é o Pytest, que oferece:
+O framework utilizado para testes é o Pytest, que oferece:
 
 - Simples escrita de testes
 - Fixtures para configuração de testes
-- Execução paralela de testes
+- Execução seletiva de testes
 - Integração com cobertura de código
 
 ### Bibliotecas Complementares
 - `pytest-asyncio`: Para testes assíncronos
 - `httpx`: Para fazer requisições HTTP nos testes de API
 - `pytest-cov`: Para medir cobertura de código
-- `factory-boy`: Para criar dados de teste
+- `fastapi.testclient.TestClient`: Cliente de teste para APIs FastAPI
 
 ## Estrutura de Testes
 
@@ -48,163 +49,115 @@ O framework recomendado para testes é o Pytest, que oferece:
 ```
 tests/
 ├── __init__.py
-├── conftest.py          # Configuração global dos testes
-├── test_config.py       # Testes para configurações
-├── test_security.py     # Testes para funções de segurança
-├── test_database.py     # Testes para operações de banco de dados
-├── api/
-│   ├── __init__.py
-│   ├── test_auth.py     # Testes para endpoints de autenticação
-│   ├── test_users.py    # Testes para endpoints de usuários
-│   ├── test_brands.py   # Testes para endpoints de marcas
-│   └── test_cars.py     # Testes para endpoints de carros
-└── factories/
-    ├── __init__.py
-    ├── user_factory.py  # Factories para criar usuários de teste
-    ├── brand_factory.py # Factories para criar marcas de teste
-    └── car_factory.py   # Factories para criar carros de teste
+├── conftest.py          # Configuração global dos testes e fixtures
+├── test_db.py           # Testes para operações de banco de dados
+├── test_auth.py         # Testes para endpoints de autenticação
+├── test_users.py        # Testes para endpoints de usuários
+├── test_brands.py       # Testes para endpoints de marcas
+└── test_cars.py         # Testes para endpoints de carros
 ```
 
 ## Implementação de Testes
 
-### Testes Unitários
+### Fixtures
 
-Exemplo de teste unitário para uma função de validação:
+O arquivo `conftest.py` fornece fixtures reutilizáveis:
+
+- `session`: Sessão de banco de dados em memória (SQLite)
+- `client`: Cliente de teste FastAPI
+- `user_data`: Dados padrão para criação de usuário
+- `user`: Usuário criado no banco de dados
+- `brand_data`: Dados padrão para criação de marca
+- `brand`: Marca criada no banco de dados
+- `car_data`: Dados padrão para criação de carro
+- `car`: Carro criado no banco de dados
+- `auth_headers`: Headers de autenticação com token JWT
+
+### Exemplo de Teste de Criação de Usuário
 
 ```python
 import pytest
-from car_api.schemas.users import UserSchema
+from fastapi import status
 
-def test_username_min_length():
-    with pytest.raises(ValueError):
-        UserSchema(username="ab", email="test@example.com", password="password123")
+class TestCreateUser:
+    @pytest.mark.asyncio
+    async def test_create_user_success(self, client, user_data):
+        response = client.post('/api/v1/users/', json=user_data)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        assert data['username'] == user_data['username']
+        assert data['email'] == user_data['email']
+        assert 'id' in data
+        assert 'created_at' in data
+        assert 'update_at' in data
+        assert 'password' not in data
 ```
 
-### Testes de API
-
-Exemplo de teste para endpoint de criação de usuário:
+### Exemplo de Teste de Autenticação
 
 ```python
-import pytest
-from fastapi.testclient import TestClient
-from car_api.app import app
-
-@pytest.fixture
-def client():
-    return TestClient(app)
-
-def test_create_user(client):
-    response = client.post("/api/v1/users/", json={
-        "username": "testuser",
-        "email": "test@example.com",
-        "password": "password123"
-    })
-    assert response.status_code == 201
-    data = response.json()
-    assert data["username"] == "testuser"
-    assert data["email"] == "test@example.com"
+@pytest.mark.asyncio
+async def test_login_success(client, user, user_data):
+    response = client.post(
+        '/api/v1/auth/token',
+        json={
+            'email': user_data['email'],
+            'password': user_data['password'],
+        },
+    )
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert 'access_token' in response.json()
+    assert response.json()['token_type'] == 'bearer'
 ```
 
-### Testes de Segurança
-
-Exemplos de testes de segurança:
+### Exemplo de Teste de Endpoint Protegido
 
 ```python
-def test_protected_endpoint_requires_auth(client):
-    response = client.get("/api/v1/users/")
-    assert response.status_code == 401  # Unauthorized
-
-def test_invalid_token_returns_error(client):
-    response = client.get("/api/v1/users/", 
-                         headers={"Authorization": "Bearer invalid_token"})
-    assert response.status_code == 401
+@pytest.mark.asyncio
+async def test_list_cars_requires_auth(client):
+    response = client.get('/api/v1/cars/')
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 ```
 
 ## Configuração de Testes
 
 ### Banco de Dados de Teste
 
-Use um banco de dados separado para testes:
+O projeto utiliza um banco de dados SQLite em memória para os testes, configurado no `conftest.py`:
 
 ```python
-# conftest.py
-import tempfile
-import os
-from sqlalchemy.ext.asyncio import create_async_engine
-from car_api.core.database import engine
+@pytest_asyncio.fixture
+async def session():
+    engine = create_async_engine(url='sqlite+aiosqlite:///:memory:')
 
-@pytest.fixture(scope="session")
-def test_db_url():
-    # Cria um banco de dados temporário para testes
-    temp_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
-    temp_db.close()
-    url = f"sqlite+aiosqlite:///{temp_db.name}"
-    yield url
-    os.unlink(temp_db.name)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async with AsyncSession(engine, expire_on_commit=False) as session:
+        yield session
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 ```
 
 ### Client de Teste
 
-Configure um client de teste para os endpoints:
+O cliente de teste é configurado para sobrescrever a dependência de sessão do banco de dados:
 
 ```python
 @pytest.fixture
-def client(test_db_session):
-    # Sobrescreve a dependência de sessão do banco de dados
-    def override_get_session():
-        yield test_db_session
-    
-    app.dependency_overrides[get_session] = override_get_session
-    yield TestClient(app)
+def client(session):
+    def get_session_override():
+        return session
+
+    with TestClient(app) as client:
+        app.dependency_overrides[get_session] = get_session_override
+        yield client
+
     app.dependency_overrides.clear()
 ```
-
-## Cobertura de Testes
-
-### Métricas de Cobertura
-
-Objetivos recomendados de cobertura:
-
-- **Mínimo**: 70% de cobertura de código
-- **Ideal**: 85% de cobertura de código
-- **Crítico**: 95% de cobertura para funções de segurança
-
-### Execução de Testes com Cobertura
-
-```bash
-# Executar testes com cobertura
-poetry run pytest --cov=car_api --cov-report=html --cov-report=term
-
-# Executar apenas testes de unidade
-poetry run pytest tests/unit/
-
-# Executar apenas testes de API
-poetry run pytest tests/api/
-```
-
-## Melhores Práticas
-
-### Escrita de Testes
-
-- Use nomes descritivos para funções de teste
-- Siga o padrão Given-When-Then
-- Teste casos de sucesso e erro
-- Isola dependências externas quando possível
-- Use fixtures para configuração repetida
-
-### Organização
-
-- Mantenha testes perto do código que testam
-- Agrupe testes relacionados
-- Use marcadores (markers) para categorizar testes
-- Evite testes dependentes entre si
-
-### Manutenção
-
-- Atualize testes quando alterar funcionalidades
-- Remova testes obsoletos
-- Revise testes frágeis regularmente
-- Documente cenários complexos de teste
 
 ## Execução de Testes
 
@@ -217,77 +170,82 @@ poetry run pytest
 # Executar testes com saída verbosa
 poetry run pytest -v
 
-# Executar testes em modo de depuração
-poetry run pytest --pdb
+# Executar testes com cobertura
+poetry run pytest --cov=car_api --cov-report=html --cov-report=term
 
 # Executar testes de um arquivo específico
 poetry run pytest tests/test_users.py
 
-# Executar testes com marcador específico
-poetry run pytest -m "integration"
+# Executar testes de um módulo específico
+poetry run pytest tests/test_cars.py -v
 ```
 
 ### Marcadores de Teste
 
-```python
-import pytest
+Os testes utilizam marcadores para categorização:
 
-@pytest.mark.unit
-def test_create_user_schema():
-    # Teste de unidade
-    pass
+- `@pytest.mark.asyncio`: Para testes assíncronos
+- Marcadores personalizados podem ser adicionados para categorizar por tipo (unit, integration, security)
 
-@pytest.mark.integration
-def test_create_user_endpoint():
-    # Teste de integração
-    pass
+## Cobertura de Testes
 
-@pytest.mark.security
-def test_auth_required():
-    # Teste de segurança
-    pass
+### Métricas de Cobertura
+
+Objetivos de cobertura:
+
+- **Mínimo**: 70% de cobertura de código
+- **Ideal**: 85% de cobertura de código
+- **Crítico**: 95% de cobertura para funções de segurança
+
+### Gerando Relatório de Cobertura
+
+```bash
+# Executar testes com cobertura e gerar relatório HTML
+poetry run pytest --cov=car_api --cov-report=html
+
+# Abrir o relatório no navegador
+# O relatório será gerado em htmlcov/index.html
 ```
 
-## Testes de Desempenho
+## Melhores Práticas
 
-### Testes de Carga
+### Escrita de Testes
 
-Considere adicionar testes de carga para endpoints críticos:
+- Use nomes descritivos para funções de teste
+- Siga o padrão Given-When-Then
+- Teste casos de sucesso e erro
+- Isole dependências externas quando possível
+- Use fixtures para configuração repetida
 
-```python
-# Exemplo com pytest-benchmark
-def test_list_users_performance(benchmark):
-    result = benchmark(list_users_function, params={"limit": 100})
-    assert len(result) == 100
-```
+### Organização
+
+- Mantenha testes perto do código que testam
+- Agrupe testes relacionados em classes (ex: `TestCreateUser`, `TestListCars`)
+- Evite testes dependentes entre si
+- Use fixtures do `conftest.py` para reutilização
+
+### Manutenção
+
+- Atualize testes quando alterar funcionalidades
+- Remova testes obsoletos
+- Revise testes frágeis regularmente
+- Documente cenários complexos de teste
 
 ## Testes de Segurança
 
-### Verificação de Vulnerabilidades
+A suite de testes inclui verificações de segurança:
 
-Testes que devem ser implementados:
-
-- Tenta acesso não autorizado a endpoints protegidos
-- Verifica tratamento adequado de dados sensíveis
+- Testa acesso não autorizado a endpoints protegidos
+- Verifica tratamento adequado de dados sensíveis (senhas não são retornadas)
 - Testa validação de entrada contra injeção
-- Confirma que tokens expirados são rejeitados
+- Confirma que tokens expirados ou inválidos são rejeitados
 
-## Próximos Passos
+## Melhorias Futuras
 
-### Implementação Imediata
-
-1. Criar estrutura básica de testes
-2. Implementar testes para funções de segurança
-3. Adicionar testes para endpoints de autenticação
-4. Criar factories para dados de teste
-
-### Melhorias Futuras
-
-1. Adicionar testes de integração completos
-2. Implementar testes de ponta a ponta
-3. Configurar CI/CD com execução automática de testes
-4. Adicionar testes de segurança automatizados
-5. Implementar testes de contrato para API
+1. Configurar CI/CD com execução automática de testes
+2. Adicionar testes de carga para endpoints críticos
+3. Implementar testes de contrato para API
+4. Adicionar testes de desempenho
 
 ## Recursos Adicionais
 

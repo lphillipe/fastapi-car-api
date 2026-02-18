@@ -91,10 +91,14 @@ Este documento define os padrões e diretrizes de desenvolvimento para manter a 
 - Use formatação automática com Ruff
 
 ### Testes
-- Escreva testes unitários para todas as funções críticas
-- Use Pytest para execução de testes
-- Mantenha cobertura de código alta
+- Escreva testes unitários e de integração para endpoints e funções críticas
+- Use Pytest com pytest-asyncio para testes assíncronos
+- Mantenha cobertura de código alta (mínimo 70%, ideal 85%+)
 - Teste casos de erro e sucesso
+- Use fixtures do `conftest.py` para reutilização de código de teste
+- Utilize banco de dados em memória para testes
+- Agrupe testes relacionados em classes (ex: `TestCreateUser`, `TestListCars`)
+- Execute testes com `poetry run pytest` ou `poetry run task test`
 
 ## Versionamento
 

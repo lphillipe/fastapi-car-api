@@ -9,11 +9,14 @@ Este documento registra as alterações feitas em cada versão da API de Gerenci
 - Cadastro e gerenciamento de usuários (CRUD completo)
 - Cadastro e gerenciamento de marcas de carros (CRUD completo)
 - Cadastro e gerenciamento de carros (CRUD completo)
-- Sistema de busca e filtragem para carros
+- Sistema de busca e filtragem para carros com múltiplos filtros
 - Validação de dados usando Pydantic
 - Documentação automática da API com Swagger UI e ReDoc
 - Sistema de segurança com hashing de senhas Argon2
 - Paginação para listagens de dados
+- Testes automatizados com Pytest
+- Verificação de propriedade de recursos (carros)
+- Enums para tipos de combustível e transmissão
 
 ### Melhorias
 - Estrutura de projeto organizada seguindo boas práticas
@@ -22,6 +25,8 @@ Este documento registra as alterações feitas em cada versão da API de Gerenci
 - Validações rigorosas para garantir integridade dos dados
 - Controle de acesso baseado em propriedade de recursos
 - Documentação completa do projeto
+- Banco de dados em memória para testes
+- Fixtures reutilizáveis para testes
 
 ### Correções de Bug
 - Nenhum bug corrigido nesta versão (lançamento inicial)
@@ -31,14 +36,17 @@ Este documento registra as alterações feitas em cada versão da API de Gerenci
 - Banco de dados SQLite configurado como padrão
 - Autenticação baseada em tokens JWT implementada
 - Estrutura de modelos SQLAlchemy definida
+- Suite de testes automatizados implementada
 
 ### Componentes
-- FastAPI 0.128.0+
+- FastAPI 0.128.x
 - SQLAlchemy 2.0.46+
-- Pydantic 2.12.5+
-- PyJWT 2.11.0+
-- Alembic 1.18.3+
-- Argon2 via pwdlib 0.3.0+
+- Pydantic 2.12.x
+- PyJWT 2.11.x
+- Alembic 1.18.x
+- pwdlib[argon2] 0.3.x
+- Pytest 8.x + pytest-asyncio
+- MkDocs + MkDocs Material
 
 ### Como Atualizar
 Esta é a versão inicial, não há processo de atualização.
