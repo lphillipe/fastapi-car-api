@@ -239,7 +239,7 @@ Para dúvidas, problemas ou sugestões:
 ---
 
 <div align="center">
-
+6
 
 [Documentação](docs/) • [API Endpoints](docs/api_endpoints.md) • [Contribuição](docs/contribution.md)
 
