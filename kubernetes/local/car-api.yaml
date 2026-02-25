@@ -55,4 +55,17 @@ spec:
         envFrom:
         - secretRef:
             name: car-api-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: car-api
+  namespace: fastapi-car-api
+spec:
+  selector:
+    app: car-api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
 
