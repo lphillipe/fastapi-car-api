@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
@@ -48,6 +48,13 @@ class UserPublicSchema(BaseModel):
     email: EmailStr
     created_at: datetime
     update_at: datetime
+
+    @field_validator('created_at', 'update_at', mode='before')
+    @classmethod
+    def parse_datetime(cls, value):
+        if isinstance(value, str) and value.endswith('+00'):
+            value = value + ':00'
+        return value
 
 
 class UserListPublicSchema(BaseModel):
