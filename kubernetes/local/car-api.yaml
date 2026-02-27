@@ -73,7 +73,7 @@ spec:
       paths:
       - path: /
         pathType: Prefix
-        backend: 
+        backend:  
           service:
             name: car-api
             port:
