@@ -37,4 +37,4 @@ spec:
         value: /
     backendRefs:
     - name: car-api
-      port: 000
+      port: 8000
