@@ -181,3 +181,6 @@ pyrightconfig.json
 *.db
 
 .DS_Store
+
+# Binários grandes / ferramentas
+skaffold
