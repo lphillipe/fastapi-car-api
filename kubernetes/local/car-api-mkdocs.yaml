@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: car-api-mkdocs
-  namespace: fastapi-car-api-mkdocs
+  namespace: fastapi-car-api
   labels:
     app: car-api-mkdocs
 spec:
@@ -27,7 +27,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: car-api-mkdocs
-  namespace: fastapi-car-api-mkdocs
+  namespace: fastapi-car-api
 spec:
   selector:
     app: car-api-mkdocs
@@ -40,7 +40,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: car-api-mkdocs-ingress
-  namespace: fastapi-car-api-mkdocs
+  namespace: fastapi-car-api
 spec:
   ingressClassName: kong
   rules:
