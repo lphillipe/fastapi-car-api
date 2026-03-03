@@ -2,6 +2,10 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ include "car-api.fullname" . }}-migrations
+  labels:
+    {{- include "car-api.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-upgrade
 spec:
   template:
     spec:
@@ -13,7 +17,12 @@ spec:
         - -c
         - |
           poetry run alembic upgrade head
+        {{- with .Values.envFrom }}
         envFrom:
-        - secretRef:
-            name: car-api-secret
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.env }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
       restartPolicy: Never
