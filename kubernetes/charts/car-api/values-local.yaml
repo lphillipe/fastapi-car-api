@@ -2,6 +2,8 @@ local:
   enabled: true
 
 postgresql:
+  auth:
+    postgresPassword: postgres 
   image:
     repository: bitnamilegacy/postgresql
   primary:
