@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "car-api.fullname" . }}-migrations
+spec:
+  template:
+    spec:
+      containers:
+      - name: alembic-migrations
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        command:
+        - /bin/sh
+        - -c
+        - |
+          poetry run alembic upgrade head
+        envFrom:
+        - secretRef:
+            name: car-api-secret
+      restartPolicy: Never
